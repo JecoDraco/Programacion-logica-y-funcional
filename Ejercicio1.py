@@ -1,4 +1,5 @@
 from kanren import run, var, Relation, facts, lany
+from typing import Iterable, Iterator
 
 
 #Ejercicio 1:
@@ -258,8 +259,10 @@ estado_certificacion = "Aprobada" if certificacion_aprobada else "Denegada"
 print(f"Estado de la Certificación Internacional: {estado_certificacion}")
 """
 
-#Ejercicio 5
 
+
+#Ejercicio 5
+"""
 transaccion = Relation()
 
 facts(transaccion,
@@ -294,3 +297,121 @@ print(f"Detalle de penalizaciones (ID, Multa): {multas_individuales}")
 
 total_recaudado = sum(multa for id_t, multa in multas_individuales)
 print(f"Monto total recaudado por penalizaciones: ${total_recaudado:.2f}")
+"""
+
+
+
+
+#Ejercio 6
+
+#1. Generador de identificadores únicos para una base de datos
+#El objetivo de este ejercicio consiste en evitar la carga masiva de elementos en la memoria. Se 
+#cuenta con una función que genera una lista completa de identificadores de forma síncrona. Se debe 
+#transformar este enfoque para que los identificadores se emitan uno a uno conforme sean solicitados 
+#por el sistema.
+
+def generar_ids_perezoso():
+    for i in range(1, 101):
+        yield f"TEC-2026-{i}"
+
+generador = generar_ids_perezoso()
+
+id_uno = next(generador)
+print(id_uno)
+
+id_dos = next(generador)
+print(id_dos)
+
+#2. Paginación infinita de publicaciones
+#En un entorno de cliente-servidor, no es eficiente enviar todo el contenido simultáneamente. Se requiere 
+#modificar el siguiente fragmento para que, simulando un desplazamiento (scroll), el sistema sea capaz de 
+#entregar las publicaciones en lotes definidos (por ejemplo, de tres en tres) bajo demanda.
+
+# --- CÓDIGO INICIAL (A TRANSFORMAR) ---
+db_posts = ["Post 1", "Post 2", "Post 3", "Post 4", "Post 5", "Post 6"]
+
+def obtener_feed_perezoso_yield(posts: Iterable[str]) -> Iterable[str]:
+    lote = []
+    for p in posts:
+        lote.append(f"<html>{p}</html>")
+        if len(lote) == 3:
+            yield lote
+            lote = []
+    if lote:
+        yield lote
+
+
+feed = obtener_feed_perezoso_yield(db_posts)
+print(next(feed))
+print(next(feed))
+
+
+#3. Buscador de errores críticos en registros (logs)
+#El análisis de archivos de registro de un servidor puede consumir amplios recursos si se intenta procesar el documento entero 
+#de una sola vez. Se debe adaptar la lógica de filtrado para que el buscador extraiga y reporte los errores críticos sin necesidad 
+#de almacenar la totalidad de las coincidencias en una estructura de datos estática.
+
+# --- CÓDIGO INICIAL (A TRANSFORMAR) ---
+logs_servidor = [
+    "200 OK", "200 OK", "500 ERROR", 
+    "200 OK", "500 ERROR", "404 NOT FOUND"
+]
+
+def buscar_todos_los_errores_lazy(logs: list[str]) -> Iterator[str]:
+    for log in logs:
+        if "500" in log:
+            yield log
+
+
+errores = buscar_todos_los_errores_lazy(logs_servidor)
+print(list(errores))
+
+
+#4. Generador de la sucesión de Fibonacci
+#El cálculo matemático de series infinitas o muy extensas es el caso de uso por excelencia para la evaluación perezosa. El algoritmo 
+#actual genera la sucesión completa hasta un límite dado, lo cual resulta prohibitivo para valores altos. Se solicita implementar una 
+#solución iterativa que calcule el siguiente valor únicamente cuando sea requerido.
+
+# --- CÓDIGO INICIAL (A TRANSFORMAR) ---
+def serie_fibonacci_ansiosa(limite: int) -> list[int]:
+    secuencia = [0, 1]
+    for i in range(2, limite):
+        secuencia.append(secuencia[i - 1] + secuencia[i - 2])
+    return secuencia
+
+
+def serie_fibonacci_perezosa():
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b
+
+
+fib = serie_fibonacci_perezosa()
+for _ in range(10):
+    print(next(fib))
+
+
+#5. Simulador de procesamiento en caja (Carrito de compras)
+#Se posee un catálogo extenso de productos en un almacén. Al pasar por la caja, el cliente procesa los artículos de uno en uno. 
+#La implementación actual aplica un impuesto sobre el valor añadido (IVA) a todo el lote antes de poder procesar la primera compra. 
+#Se debe refactorizar para calcular el impuesto dinámicamente producto por producto.
+
+# --- CÓDIGO INICIAL (A TRANSFORMAR) ---
+precios_almacen = [100.0, 200.0, 300.0, 400.0, 500.0]
+
+def aplicar_iva_a_todo(precios: list[float]) -> list[float]:
+    procesados = []
+    for precio in precios:
+        procesados.append(precio * 1.16)
+    return procesados
+
+
+def aplicar_iva_perezoso(precios: list[float]) -> Iterator[float]:
+    for precio in precios:
+        yield precio * 1.16
+
+
+carrito = aplicar_iva_perezoso(precios_almacen)
+print(next(carrito))
+print(next(carrito))
