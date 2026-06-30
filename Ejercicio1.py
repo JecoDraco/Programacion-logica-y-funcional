@@ -1,5 +1,6 @@
 from kanren import run, var, Relation, facts, lany
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Generator, Dict, Any
+from types import MappingProxyType
 
 
 #Ejercicio 1:
@@ -310,6 +311,7 @@ print(f"Monto total recaudado por penalizaciones: ${total_recaudado:.2f}")
 #transformar este enfoque para que los identificadores se emitan uno a uno conforme sean solicitados 
 #por el sistema.
 
+"""
 def generar_ids_perezoso():
     for i in range(1, 101):
         yield f"TEC-2026-{i}"
@@ -327,7 +329,6 @@ print(id_dos)
 #modificar el siguiente fragmento para que, simulando un desplazamiento (scroll), el sistema sea capaz de 
 #entregar las publicaciones en lotes definidos (por ejemplo, de tres en tres) bajo demanda.
 
-# --- CÓDIGO INICIAL (A TRANSFORMAR) ---
 db_posts = ["Post 1", "Post 2", "Post 3", "Post 4", "Post 5", "Post 6"]
 
 def obtener_feed_perezoso_yield(posts: Iterable[str]) -> Iterable[str]:
@@ -351,7 +352,6 @@ print(next(feed))
 #de una sola vez. Se debe adaptar la lógica de filtrado para que el buscador extraiga y reporte los errores críticos sin necesidad 
 #de almacenar la totalidad de las coincidencias en una estructura de datos estática.
 
-# --- CÓDIGO INICIAL (A TRANSFORMAR) ---
 logs_servidor = [
     "200 OK", "200 OK", "500 ERROR", 
     "200 OK", "500 ERROR", "404 NOT FOUND"
@@ -372,7 +372,6 @@ print(list(errores))
 #actual genera la sucesión completa hasta un límite dado, lo cual resulta prohibitivo para valores altos. Se solicita implementar una 
 #solución iterativa que calcule el siguiente valor únicamente cuando sea requerido.
 
-# --- CÓDIGO INICIAL (A TRANSFORMAR) ---
 def serie_fibonacci_ansiosa(limite: int) -> list[int]:
     secuencia = [0, 1]
     for i in range(2, limite):
@@ -397,7 +396,6 @@ for _ in range(10):
 #La implementación actual aplica un impuesto sobre el valor añadido (IVA) a todo el lote antes de poder procesar la primera compra. 
 #Se debe refactorizar para calcular el impuesto dinámicamente producto por producto.
 
-# --- CÓDIGO INICIAL (A TRANSFORMAR) ---
 precios_almacen = [100.0, 200.0, 300.0, 400.0, 500.0]
 
 def aplicar_iva_a_todo(precios: list[float]) -> list[float]:
@@ -415,3 +413,54 @@ def aplicar_iva_perezoso(precios: list[float]) -> Iterator[float]:
 carrito = aplicar_iva_perezoso(precios_almacen)
 print(next(carrito))
 print(next(carrito))
+"""
+
+
+
+#Ejercicios 7
+
+#Ejercicio 1. Combinaciones Lazy y Programación FuncionalUna empresa procesa un flujo constante de transacciones bancarias. 
+# Para mitigar fraudes, se requiere diseñar un sistema de detección temprana que analice de forma perezosa las transacciones y 
+# dispare alertas inmediatas ante movimientos sospechosos.
+# 
+# Instrucciones Adaptadas a PythonInmutabilidad: 
+# Se aplica una estructura inmutable profunda al conjunto de datos utilizando tuplas y mapas de solo lectura (types.MappingProxyType).
+# Lógica de Predicados: Se definen los predicados atómicos mediante funciones puras o expresiones lambda: es_retiro(t), 
+# es_monto_sospechoso(t) (monto mayor o igual a $50,000$), y es_zona_de_riesgo(t) (país de origen distinto a "México", 
+# utilizando el operador not).
+# 
+# Regla de Negocio: Se combinan los predicados para construir la regla alerta_fraude(t) mediante la lógica: la transacción es un 
+# retiro AND (Es Monto Sospechoso OR Es Zona de Riesgo).
+# 
+# Evaluación Perezosa: Se implementa un generador perezoso que reciba las transacciones y filtre utilizando la regla alerta_fraude. 
+# El flujo se consume únicamente hasta detectar las primeras 2 alertas.Código.
+
+
+# 1. Datos de entrada con estructura inmutable profunda
+transacciones = (
+    MappingProxyType({'id': 101, 'tipo': 'deposito', 'monto': 60000, 'pais': 'México'}),
+    MappingProxyType({'id': 102, 'tipo': 'retiro', 'monto': 15000, 'pais': 'Colombia'}),
+    MappingProxyType({'id': 103, 'tipo': 'retiro', 'monto': 12000, 'pais': 'México'}),
+    MappingProxyType({'id': 104, 'tipo': 'retiro', 'monto': 55000, 'pais': 'México'}),
+    MappingProxyType({'id': 105, 'tipo': 'deposito', 'monto': 90000, 'pais': 'Francia'}),
+    MappingProxyType({'id': 106, 'tipo': 'retiro', 'monto': 75000, 'pais': 'Espana'})
+)
+
+es_retiro = lambda t: t["tipo"] == "retiro"
+es_monto_sospechoso = lambda t: t["monto"] >= 50000
+es_zona_riesgo = lambda t: t["pais"] != "México"
+
+alerta_fraude = lambda t: es_retiro(t) and (es_monto_sospechoso(t) or es_zona_riesgo(t))
+
+def evaluar_peresozoso(flujo: tuple[MappingProxyType, ...]) -> Generator[MappingProxyType, None, None]:
+    for transaccion in flujo:
+        if alerta_fraude(transaccion):
+            yield transaccion
+
+print("Ejercicio 1 - Alertas de Fraude Detectadas:")
+contador = 0
+for alerta in evaluar_peresozoso(transacciones):
+    if contador >= 2:
+        break
+    print(f"- ID: {alerta['id']}, Tipo: {alerta['tipo']}, Monto: {alerta['monto']}, País: {alerta['pais']}")
+    contador += 1
